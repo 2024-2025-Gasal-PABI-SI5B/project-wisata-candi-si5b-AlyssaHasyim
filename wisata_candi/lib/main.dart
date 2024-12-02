@@ -1,40 +1,43 @@
 import 'package:flutter/material.dart';
-import 'package:wisata_candi/data/candi_data.dart';
-import 'package:wisata_candi/screens/detail_screen.dart';
-import 'package:wisata_candi/screens/profile_screen.dart';
-import 'package:wisata_candi/screens/signin_screen.dart';
+import 'package:flutter_wisata_candi/data/candi_data.dart';
+import 'package:flutter_wisata_candi/models/candi.dart';
+import 'package:flutter_wisata_candi/screens/detail_screen.dart';
+import 'package:flutter_wisata_candi/screens/home_screen.dart';
+import 'package:flutter_wisata_candi/screens/login_screen.dart';
+import 'package:flutter_wisata_candi/screens/main_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(const MainApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+
+  runApp(MainApp(isLoggedIn: isLoggedIn));
 }
 
 class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+  final bool isLoggedIn;
+  const MainApp({super.key, required this.isLoggedIn});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: "Wisata Candi",
-      theme: ThemeData(
-        appBarTheme: const AppBarTheme(
-            iconTheme: IconThemeData(color: Colors.deepPurple),
-            titleTextStyle: TextStyle(
-              color: Colors.deepPurple,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            )),
-        colorScheme:
-            ColorScheme.fromSeed(seedColor: Colors.deepPurple).copyWith(
-          primary: Colors.deepPurple,
-          surface: Colors.deepPurple[50],
-        ),
-        useMaterial3: true,
-      ),
-      // home: DetailScreen(
-      //   candi:candiList[0],
-      // )
-      // home: ProfileScreen()
-      home: SigninScreen(),
+      title: 'Wisata Candi',
+      theme:
+          ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.brown)),
+      home: isLoggedIn ? const MainScreen() : const LoginScreen(),
+      routes: {
+        '/login': (context) => const LoginScreen(),
+        '/home': (context) => const HomeScreen(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/detail') {
+          final candi = settings.arguments as Candi;
+          return MaterialPageRoute(
+              builder: (context) => DetailScreen(candi: candi));
+        }
+        return null;
+      },
     );
   }
 }
